@@ -1,0 +1,305 @@
+AI-Related Testing in Jumio
+
+
+At Jumio, I led quality strategy and automation for an AI-based Document Verification platform used for KYC, onboarding, and Proof of Address across 14 countries, 8 languages, and 24 document types.
+
+Unlike traditional systems, testing AI pipelines requires validating probabilistic outputs, OCR quality, NLP extraction accuracy, PII masking correctness, model drift, bias, and regulatory compliance.
+
+I built a multi-layered testing framework covering:
+* Data validation
+* Model accuracy validation
+* Pipeline reliability
+* Workflow orchestration correctness
+* Production monitoring & drift detection
+I automated model evaluation using golden datasets, confidence-threshold validation, regression benchmarking, and synthetic document generation, and integrated these into CI/CD.
+This reduced false positives to ~1%, stabilized model releases, and enabled safe rollout across multilingual and multi-format document types at scale.
+
+At Jumio-style platforms, I worked on:
+* OCR models (text extraction)
+* Document classification models (passport, DL, ID card)
+* Forgery/tamper detection models
+* Face match/liveness models
+
+
+What Makes AI Testing Different?
+
+Input → Output == Expected
+
+
+AI testing checks:
+
+Input → Output ∈ Probability Distribution → Acceptable Confidence Range
+
+So instead of exact correctness, you test:
+* Accuracy thresholds
+* Precision / Recall
+* Confidence scores
+* Drift
+* Bias
+* Robustness to noise
+Interviewers want to hear this mindset shift.
+
+AI Testing Pyramid
+
+            ┌──────────────────────┐
+            │  Production Drift    │
+            │  + Monitoring Tests  │
+            └──────────────────────┘
+            │   End-to-End AI      │
+            │   Workflow Tests     │
+            └──────────────────────┘
+            │  Model Validation &  │
+            │  Statistical Tests   │
+            └──────────────────────┘
+            │  Data Quality Tests  │
+            └──────────────────────┘
+
+Layer 1 — Data Testing
+
+
+80% of AI failures come from bad data, not bad models.
+What You Tested
+* Image quality (blur, glare, skew)
+* Language detection correctness
+* Document classification correctness
+* PII presence & masking boundaries
+* Ground truth label correctness
+
+Python Libraries Used
+
+We used Great Expectations and Pandas for validating dataset integrity before model execution. OpenCV-based checks were added to validate blur, skew, and brightness to avoid poor-quality inference inputs.
+Purpose	Libraries
+Data validation	pandas, pydantic, great_expectations
+Image validation	opencv-python, Pillow
+OCR sanity checks	pytesseract
+Schema validation	jsonschema
+
+Area	Technique
+Image quality	Blur detection, brightness histograms
+OCR robustness	Character error rate (CER)
+LayoutLM accuracy	Field-level extraction accuracy
+Bias	Country/language distribution tests
+Label integrity	Schema + semantic validation
+
+I treated training and inference datasets as first-class test artefacts and built automated pipelines to fail builds if dataset distributions deviated from baseline production statistics.
+
+Layer 2 — Model Validation Testing
+
+Algos- DistilBERT + LayoutLM  through  TensorFlow + SageMaker
+What You Tested
+* Field-level extraction accuracy
+* Confidence calibration
+* Regression across model versions
+* Performance per document type/language/country.
+
+Image
+ ↓
+OCR
+ ↓
+LayoutLM → Extract structured fields
+ ↓
+DistilBERT → Classify/analyze extracted text
+
+Model Type	Metrics
+OCR	CER, WER
+NLP extraction	Precision, Recall, F1
+Classification	Confusion matrix
+PII Masking	False negative rate (critical)
+
+Python Libraries Used
+We automated model evaluation using scikit-learn metrics like precision, recall, and F1-score, while OCR accuracy was validated using CER/WER metrics through the JiWER library.
+Purpose	Libraries
+ML evaluation	scikit-learn
+NLP model testing	transformers
+Tensor operations	tensorflow, numpy
+OCR metrics	jiwer (WER/CER)
+
+CER — Character Error Rate
+CER measures:
+How many characters were wrong.
+Formula:
+CER=(S+D+I )/N
+
+* S = Substitutions
+* D = Deletions
+* I = Insertions
+* N = Total characters in actual text
+
+WER — Word Error Rate
+
+WER measures:
+How many words were wrong.
+
+
+CER=(S+D+I )/N
+Same formula, but: N = total words
+
+How CER/WER are Calculated Internally
+They usually use:
+* Levenshtein Distance
+* Edit Distance Algorithm
+This calculates:
+* Minimum edits needed to convert prediction → actual text
+
+Golden Dataset → Model Inference → Metric Calculation → Threshold Gate → CI/CD
+
+def evaluate_model(preds, labels):
+    precision = precision_score(labels, preds)
+    recall = recall_score(labels, preds)
+    f1 = f1_score(labels, preds)
+    assert f1 >= 0.95
+
+We treated model metrics as test assertions and blocked production promotion if any country/language slice regressed beyond defined error budgets.
+
+Layer 3 — Robustness & Adversarial Testing
+
+What You Tested
+* Low-light images
+* Skewed/rotated documents
+* Partial occlusion
+* Camera noise
+* Watermarks & stamps
+* Different fonts & layouts
+
+Python Libraries Used
+We built adversarial testing pipelines using Albumentations and OpenCV to generate synthetic document corruptions like blur, glare, and skew, validating graceful degradation instead of catastrophic failures.
+Purpose	Libraries
+Image distortion	opencv-python, albumentations
+Synthetic augmentation	imgaug
+Randomized testing	hypothesis
+
+Automation Technique
+You can generate synthetic corruption automatically:
+
+
+Using OpenCV (NumPy images)
+import cv2
+import numpy as np
+import random
+
+def add_gaussian_noise(img, mean=0, std=10):
+    noise = np.random.normal(mean, std, img.shape).astype(np.float32)
+    noisy = img.astype(np.float32) + noise
+    return np.clip(noisy, 0, 255).astype(np.uint8)
+
+def distort_image(img):
+    img = add_gaussian_noise(img)
+
+    angle = random.randint(-10, 10)
+    h, w = img.shape[:2]
+    M = cv2.getRotationMatrix2D((w//2, h//2), angle, 1.0)
+    img = cv2.warpAffine(img, M, (w, h))
+
+    k = random.choice([3,5])
+    img = cv2.GaussianBlur(img, (k, k), 0)
+
+    return img
+
+Original Image → Distorted Variants → Model → Accuracy Delta
+
+Layer 4 — Workflow & System Testing
+
+Acquisition → OCR → Classification → Field Extraction → PII Masking → Proof of Address → Decisioning
+
+What I have tested
+* Partial extraction failures
+* Fallback models
+* Confidence threshold routing (manual review vs auto-approve)
+* Retry logic
+* Multi-country workflows
+* Regulatory compliance logic
+
+I validated not just correctness but business risk routing — ensuring low-confidence predictions never auto-approved regulated workflows.
+
+Python Libraries Used
+
+Purpose	Libraries
+API automation	requests
+Test framework	pytest
+Reporting	allure-pytest
+Parallel execution	pytest-xdist
+
+
+
+Layer 5 — Production AI Monitoring & Drift Testing
+
+What You Monitored
+* Input data drift (country mix, doc layouts)
+* Prediction confidence drift
+* Field-level extraction degradation
+* PII leakage risk
+
+Production Logs → Feature Stats → Baseline Comparison → Alerting
+
+I implemented continuous post-deployment validation, comparing live model distributions against training baselines to detect silent degradation before it impacted customers.
+
+How You Automated AI Testing (Architecture)?
+
+Git Commit
+   ↓
+Model Training Pipeline (SageMaker)
+   ↓
+Golden Dataset Evaluation
+   ↓
+Robustness Testing (Synthetic Docs)
+   ↓
+Workflow API Tests
+   ↓
+Performance & Latency Benchmarks
+   ↓
+Drift Baseline Update
+   ↓
+Production Deployment
+
+
+Example 1 — PII Masking Accuracy
+We built automated regression tests to ensure zero false negatives in PII masking by injecting synthetic credit card numbers into documents and asserting redaction before downstream workflows.
+
+Example 2 — Multi-Language Regression
+Every model release ran automated accuracy slicing across 8 languages and 14 countries, and blocked deployment if any slice regressed beyond 1.5% from baseline.
+
+
+Q1. How do you test AI models?
+I built a multi-layered testing framework covering:
+* Data validation
+* Model accuracy validation
+* Pipeline reliability
+* Workflow orchestration correctness
+* Production monitoring & drift detection
+I automated model evaluation using golden datasets, confidence threshold validation, regression benchmarking, and synthetic document generation, integrating these into CI/CD.
+This reduced false positives to ~1%, stabilized model releases, and enabled safe rollout across multilingual and multi-format document types at scale.
+
+Instead of exact outputs, I validate probabilistic thresholds, confidence calibration, and regression boundaries across slices like language, country, and document type
+
+Example:
+We blocked rollout when recall for Mexican voter IDs dropped 6% after a model refresh — surfaced via automated canary validation on golden datasets.
+
+
+Example:
+Simulated an OCR timeout and verified a fallback to human review within SLA, preventing the user journey from failing.
+
+Example:
+Instead of asserting extracted name text exactly, I validated Levenshtein distance ≤ threshold and field-level confidence > 0.9.
+
+How do you design automation frameworks for AI pipelines?
+
+I treat ML pipelines like distributed systems with models as versioned dependencies.
+
+
+Test Orchestrator (JUnit/TestNG)
+  ├── Data Loaders (S3/GCS)
+  ├── Model Invocation Clients
+  ├── Metric Validators
+  ├── Drift Comparators
+  ├── CI/CD Gates
+
+
+Q2. How do you automate ML testing?
+I treat model evaluation as a test suite — golden datasets, synthetic data generation, metric assertions, and regression comparisons are integrated into CI/CD pipelines. Deployments are blocked if metrics regress beyond defined error budgets.
+
+Q3. How do you test OCR / NLP pipelines?
+I validate OCR quality via CER/WER metrics, NLP extraction via field-level precision/recall, and robustness using distorted image variants. I also test workflow routing based on confidence thresholds.
+
+Q4. How do you test PII masking?
+I use adversarial injection of synthetic PII patterns and assert zero false negatives. Masking accuracy is treated as a hard compliance gate.
+
