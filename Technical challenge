@@ -1,0 +1,106 @@
+Technical challenge
+
+In a system processing real-time traffic flow data across multiple protocols and CDC streams, several endpoints were changed to new IP addresses. This impacted a live streaming pipeline where protobuf-encoded events flowed through Kafka → Google Dataflow  → BigQuery across multiple customer organisations. Any data loss, duplication, or misrouting could cause heavy inconsistency across the system.
+
+Internals — Basically, here they are leveraging Google DataFlow Streaming Service, which provides  DataFlow Templates instead of writing pipeline code. They were using a schema registry to handle the schema constraints.
+
+To speak- Basically, here they are leveraging Google DataFlow Streaming Service, which is being used to ingest data from Kafka to BQ. They were using a schema registry to handle the schema constraints. Any incorrect/unprocessed messages (malformed JSON or mismatched schema) from the Dead Letter Queue are being pushed to the error table in BQ.
+
+
+Kafka Topic — fdi.aggregator.1min.output 
+BQ Data Set - operation_traffic_silver 
+Table name- traffic_fdi_flowdata_agg_per_minute
+error
+
+Airtel org_id 
+
+Tanmay is the Subscriber which has an endpoint 
+5 times of time interval 
+
+
+He is watching Netflix 
+
+Ep ip> app_ip UP
+app_ip -> ep ip DOWN
+
+Bangalore - xyz - loc ip
+
+he switched to the Amazon Prime app+id
+his ep can also change 
+Bytes transferred 
+Latency 
+
+
+Kafka → Google Dataflow  → BigQuery
+(Protobuf: data format)
+
+Google Dataflow is a fully managed, serverless platform for unified batch and streaming data processing, built on Apache Beam®. It enables auto-scaling, real-time analytics, and efficient ETL pipelines, removing operational overhead. Key features include high-volume data handling, exactly-once processing, and integration with Google Cloud services like BigQuery. 
+
+Task
+I was responsible for designing a production-safe validation framework to ensure:
+* Events from all orgs reached Kafka correctly
+* The same events were persisted accurately in BigQuery
+* No regressions occurred during endpoint/IP migrations/changes.
+* Validation worked under real-time, streaming conditions
+* The events consist of endpoint ip, location ip, application ip, direction (upstream & downstream), bytes, org_id and that even changes within the span of the time interval, which has increased the complexity of validation.
+
+Action
+I designed a streaming validation automation framework with the following approach: 
+1. Sliding Window Stream Validation
+    * Implemented a time-windowed correlation model (e.g., 1–5 minute sliding windows) to compare:
+        * Events ingested into Kafka
+        * Events materialised in BigQuery
+    * This handled out-of-order delivery, retries, and eventual consistency without flakiness.
+2. Protobuf Schema-Aware Validation
+    * Built dynamic protobuf deserializers to:
+        * Validate schema compatibility across old and new endpoints
+3. Multi-Tenant Data Isolation Checks
+    * Added org-level partitioning assertions ensuring:
+        * No cross-tenant leakage
+        * Correct routing after IP migration
+4. Real-Time Automation Utility
+    * Created a reusable stream validation harness that:
+        * Injected synthetic test traffic
+        * Observed Kafka topics and BQ tables
+        * Correlated message counts, hashes, and key fields within sliding windows
+        * Raised alerts for loss, duplication, skew, or latency breaches
+5. Production-Safe Observability
+
+    * Enabled shadow validation during rollout instead of blocking production traffic
+
+Result
+* Detected silent schema regressions and routing mismatches before full rollout
+* Prevented multi-tenant data contamination
+* Reduced streaming pipeline defects by ~70% post-migration
+* Framework became the standard validation layer for future Dataflow and Kafka changes
+
+🔥 Why This Is Staff-Level
+This story shows:
+Staff Signal	Your Example
+System-wide thinking	Kafka + Dataflow + BQ across tenants
+Production safety	Shadow validation, sliding windows
+Scale handling	Real-time, high-throughput
+Automation maturity	Schema-aware, reusable harness
+Risk mitigation	Endpoint migration validation
+
+
+🎯 Ultra-Concise Interview Version (60 seconds)
+In one system, we had live streaming traffic across multiple protocols flowing through Dataflow into Kafka and BigQuery, and several legacy endpoints were migrated to new IPs. I built a real-time validation framework using sliding windows to correlate Kafka and BigQuery events, accounting for out-of-order delivery and eventual consistency. The framework was protobuf-schema aware, multi-tenant safe, and production-shadowed. It caught silent routing and schema regressions before rollout and became the standard pipeline validation layer for future migrations.
+
+How did you validate messages actually reached Kafka?
+
+I used consumer groups dedicated to validation that subscribed to the same topics as downstream services. For every test traffic batch, I correlated producer-side message IDs with Kafka offsets and partition keys, then validated arrival counts, ordering guarantees per partition.
+
+How did you validate Kafka → BigQuery consistency in real time?
+
+Answer:
+I used time-windowed correlation — Kafka ingestion timestamps were bucketed into sliding windows and matched against BQ ingestion_time fields. Instead of strict ordering, I validated count parity, schema integrity, and checksum equality within each window to handle out-of-order and late arrivals.
+
+How did you validate multi-tenant isolation?
+Answer:
+Every message carried org_id and routing metadata. My framework asserted partition affinity and topic-level routing rules and ensured no cross-org leakage by verifying Kafka headers and downstream BQ partitions.
+
+How did you deal with Kafka’s at-least-once delivery and duplicates?
+Answer:
+I implemented idempotent validation using deterministic event IDs derived from business keys + timestamp buckets. Within each sliding window, I de-duplicated messages before comparison, allowing us to distinguish between retry duplication and true data loss.
+
