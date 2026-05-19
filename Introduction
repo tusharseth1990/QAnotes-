@@ -1,0 +1,37 @@
+Introduction 
+
+
+I have 12+ years of experience in Quality Engineering and currently lead the FCR QA team at Calix, a cloud and software product company in the broadband and smart home space.
+
+I’ve worked across startup environments like BigBasket and Jumio, and product companies like JDA Software, across multiple domains such as Supply Chain, E-commerce, BFSI, & some AI/ML & cloud platforms. 
+
+I specialise in building scalable UI, API,  and performance automation frameworks using Java, Selenium/Playwright, and REST Assured, and Python, pytest, k6, and Jenkins, with strong experience validating data across SQL and NoSQL systems. This also includes experience in AI workflow validation and OCR/NLP-based testing.
+
+I currently lead a team of 5 engineers and own end-to-end QA responsibilities, including test strategy, automation design, code reviews, release validations, and stakeholder communication.
+
+At Jumio, I led quality strategy and automation for an AI-based Document Verification platform used for KYC, onboarding, and Proof of Address across 14 countries, 8 languages, and 24 document types.
+
+
+DV Product Intro
+
+Document Verification provides automated solutions for financial institutions and other online businesses, offering a quick, easy way to verify customer information using identity and secondary documents captured on a smartphone, leveraging AI/ML models/algorithms.
+
+The end user easily captures secondary document types such as utility bills, phone bills, bank statements, & credit card statements with their smartphone or webcam & has the data automatically extracted. (24 documents) - 8 languages & 14 countries (current mainly EU & US)
+
+It’s an AI-based automated solution to mask sensitive data such as credit card numbers and other PII data while pulling information relevant to ID verification with ~99% accuracy, or the reduction of false positives to ~1%
+
+Acquisition => Extraction(extract Data) => Proof of Address and Residence (different Workflow)
+
+Use Cases
+- Proof Of Address
+- Document Collection
+- New Account Onboarding 
+- Reduce manual Extraction
+- KYC & some other ones
+
+
+Why Switch?
+
+To be honest, I hit a point where my responsibilities stayed the same, but my capabilities have increased. I wanted a role with more ownership, a clear growth path and work that aligns more with my long-term plans
+										OR
+My scope and impact have grown over time, and I’m now looking for broader ownership, larger problem spaces, and a clearer growth path. I want a role that aligns with my long-term goals, where I can drive quality across teams and systems while continuing to grow technically and as a leader
