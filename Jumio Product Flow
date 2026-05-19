@@ -1,0 +1,153 @@
+ Jumio Product Flow
+
+Document Verification Product-related
+
+6 people 
+1 QA
+2 backend devs
+2 AI/ML eng
+1 PM
+
+
+API Authentication
+
+
+Authentication
+---------------
+OAuth 2.0
+Spring Security
+
+
+Customer Portal
+    - customer creates client_id, client_secret
+
+
+https://oauth.jumio.com/api/generate    // aws cognito
+    {
+        client_id : lsdjlfdjfkld
+        client_secret: klsdjflsdkjflksdjflksdjflksdjflkdsjf
+    }
+
+
+{
+    "access_token":eyksdjfdjfflsd.sdjflsjfsdlf.djflsdfjfsd    // jwt
+    "refresh_token":eylsdkfjlskdjflfsdff.sdfsdfds.fsdfsdf
+    "expires_in":86400
+}
+
+
+https://jumio.com/api/v3/acquisition
+
+
+headers:
+Authorization: Bearer <access token>
+
+(external APIs)
+client ->  api gateway (aws) 
+            -> aws cognito ()
+                -> ECS cluster(request headers) 
+                    -> Service API  (userId)
+
+
+VPC -> multiple microservices
+    e.g. workflow-service -> dv-subsystem
+
+inter microservice communication
+    - HTTP / Grpc (synchronous)
+        - Basic Authentication
+            - username, password managed in Consul
+    - Sns/SQS based
+        - No Authentication
+        - Data is KMS Encrypted
+    - Orchestration via Step Functions
+        - No Authentication
+        - Data is KMS Encrypted
+
+ECS: Fargate
+    - deployment of containers
+
+SLA:
+    - Before it was 1 day (ocrolus) without AI Automation
+    - Now minimum: 20 seconds (including GCP calls), maximum: 2 minutes
+
+
+Consul
+-------------------
+- Service health
+- Service Discovery
+- Key value store
+    config/yaml file
+
+
+-> Authentication Service ( aws cognito)
+    -> acquisition service
+        -> bin storage service
+        -> pdf extractor service
+        -> storage service
+    -> usability service
+        -> blurriness check service
+        -> image checks
+        -> no doc
+        -> reverse nv
+        -> language
+    -> document OCR (GCP)
+        -> storage service
+    -> pci-detection service
+        -> vision API (GCP)
+    -> reclassification service
+        -> updates the document type (CC, CCS)
+    -> dv-subsystem / workflow-service
+        -> dv-model-gateway
+            -> doc parser services (Sagemaker)
+        -> rest-q
+    -> masking-subsystem
+    -> jumbo / backoffice
+    -> document-service
+    -> storage service
+    -> search service
+    -> callback service
+    -> wipeout service
+    -> retrieval service
+
+
+Authentication -> Acquisition Service -> Usability Service -> Document OCR -> pci-detection service -> reclassification Service 
+
+Auth=> Acquisition => Usability checks =>Image checks => pci checks => reclassification 
+
+Deployment Strategy:
+- Blue Green
+    - Deploy into SGP region first
+    - Check SAT
+    - Check the recent changes
+    - If all good, deploy into  EU, US
+
+DB:
+    - DynamoDB (migrated from Postgres)
+
+Cache:
+    - Redis () (write through Cache)
+
+Search Service:
+    - Elastic Search
+
+
+v2 OAuth => 
+
+AWS API Gateway 
+AWS cognate for auth purpose => validate in Cognito
+
+
+
+Lookup at consul
+
+Pupper hieeradata - config service
+
+Inter Service communication
+
+
+
+Acquisition => Usability checks => Image checks => reclassification
+
+
+ 
+
