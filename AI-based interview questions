@@ -1,0 +1,330 @@
+AI-based interview questions 
+
+
+How would you test an AI system differently from a traditional application?
+
+Traditional systems are deterministic:
+* Same input → same output
+AI systems are probabilistic:
+* The same intent may generate slightly different outputs
+So testing strategy changes.
+
+A. Data Validation
+* Input document quality
+* Corrupted files
+* OCR noise
+* Language variance
+* Adversarial inputs
+B. Model Validation
+* Accuracy
+* Precision/Recall/F1
+* CER/WER for OCR
+* Hallucination rate
+* Confidence scoring
+C. Workflow Validation
+* End-to-end business outcome validation
+* Human review routing
+* Retry/fallback behavior
+* Escalation logic
+D. Governance Validation
+* Explainability
+* Audit logs
+* Traceability
+* Bias checks
+* PII masking validation
+E. Production Monitoring
+* Drift detection
+* Model degradation
+* Latency spikes
+* Prompt regression
+* Golden dataset comparison
+Strong Closing Line
+“In AI systems, correctness is not only about functional validation — it’s about reliability boundaries, confidence behavior, explainability, and operational trust.”
+
+
+How would you test a lending or due diligence AI workflow?
+
+Input Layer
+* Different financial documents
+* Blurry scans
+* Handwritten forms
+* Multi-language docs
+* Tampered documents
+OCR Layer
+Validate:
+* Field extraction accuracy
+* CER/WER
+* Coordinate mapping
+* Missing field handling
+NLP / Classification Layer
+Validate:
+* Entity extraction
+* Risk classification
+* Fraud signals
+* Confidence thresholds
+Decision Layer
+Validate:
+* Rule engine correctness
+* Explainability
+* Threshold-based routing
+* Human override workflows
+Compliance Layer
+Validate:
+* PII masking
+* Audit logging
+* Immutable decision trails
+* Regulatory traceability
+Production Layer
+Validate:
+* Drift
+* False positives
+* SLA latency
+* Retry resiliency
+* Queue failures
+
+
+How would you build an AI testing framework?
+
+I would build the framework as a layered validation platform rather than a simple automation suite
+
+Components
+Test Orchestration
+* PyTest / TestNG
+* Parallel execution
+* Environment-aware execution
+Data Layer
+* Golden datasets
+* Synthetic datasets
+* Versioned test data
+AI Evaluation Layer
+* Output similarity scoring
+* Confidence validation
+* Semantic comparison
+* Hallucination detection
+API + Workflow Layer
+* REST/gRPC validation
+* Async workflow testing
+* Queue validation
+Observability Layer
+* Logging
+* Prompt traces
+* Token usage
+* Latency dashboards
+CI/CD Integration
+* Jenkins/GitHub Actions
+* Dockerized execution
+* AWS pipeline integration
+Reporting
+* AI metrics dashboards
+* Drift trends
+* False positive analysis
+Strong Staff-level statement
+“The framework should evolve into a quality intelligence platform capable of continuously evaluating model behavior in production.”
+
+How do you validate LLM outputs?
+
+You cannot rely only on exact string matching.
+Instead use:
+Semantic Validation
+* Embedding similarity
+* Intent matching
+* Context correctness
+Rule-Based Validation
+* JSON schema validation
+* Mandatory field validation
+* Business rules
+AI-as-a-Judge
+* Secondary evaluator models
+* Rubric-based scoring
+Golden Dataset Evaluation
+* Benchmark prompts
+* Regression scoring
+Human Evaluation
+* Sampling strategy
+* Expert review loop
+Mention failure patterns
+* Hallucinations
+* Prompt injection
+* Unsafe outputs
+* Context leakage
+* Inconsistent reasoning
+
+How would you reduce hallucinations in enterprise AI systems?
+
+Hallucinations are reduced through architecture + evaluation.
+
+Retrieval Grounding
+* RAG systems
+* Trusted knowledge sources
+Structured Outputs
+* JSON schema enforcement
+* Tool/function calling
+Confidence Thresholds
+* Reject uncertain responses
+* Human review routing
+Prompt Guardrails
+* Constrained prompting
+* Instruction hierarchy
+Post-processing Validation
+* Rule engines
+* Compliance validators
+Continuous Evaluation
+* Drift monitoring
+* Regression benchmarking
+
+How do you measure quality in AI systems?
+
+Mention Multi-dimensional Metrics
+
+Model Metrics
+* Accuracy
+* Precision/Recall
+* F1
+* CER/WER
+System Metrics
+* Latency
+* Throughput
+* Failure rate
+Business Metrics
+* Decision accuracy
+* Manual review reduction
+* Fraud detection success
+Reliability Metrics
+* Drift
+* Hallucination rate
+* Confidence stability
+Operational Metrics
+* MTTR
+* Regression escape rate
+* Production incident rate
+
+How would you test explainability?
+
+Explainability testing validates whether the system can justify decisions consistently and transparently.
+
+Example
+“If a loan application is rejected, the system should clearly explain whether the reason was income inconsistency, credit score thresholds, missing documentation, or fraud indicators.”
+
+
+Mention:
+* Decision trace validation
+* Feature attribution consistency
+* Audit trail completeness
+* Source citation validation
+* Human-readable reasoning
+* Rule-to-output mapping
+
+What are Drift trends in AI Testing?
+
+In AI testing, drift trends are patterns that indicate an AI/ML model’s behaviour is gradually changing over time in comparison to how it performed during training or initial deployment.
+This is one of the most important concepts in production AI quality engineering because AI systems are not static like traditional software.
+
+Types of Drift in AI Testing
+
+1. Data Drift (Input Drift)
+The distribution of incoming data changes over time.
+The model still works the same way internally, but the input data no longer resembles the training data.
+Example
+An OCR model trained mostly on:
+* clear scanned passports
+* English documents
+* daylight images
+Now production traffic contains:
+* blurry mobile photos
+* regional language documents
+* low-light captures
+The input distribution has drifted.
+
+Signals/Test Indicators
+* OCR confidence drops
+* increase in null fields
+* Higher extraction failures
+* spike in retry rates
+
+2. Concept Drift
+The relationship between input and output changes.
+The model logic becomes outdated because real-world patterns have evolved.
+Example
+A fraud detection model:
+* earlier: large transactions = suspicious
+* Now: UPI + instant transfers are normal behaviour
+The meaning of “fraud pattern” changed.
+
+
+3. Prediction Drift
+The model’s prediction distribution changes unexpectedly.
+Example
+Earlier:
+* 8% applications rejected
+Now:
+* 42% applications rejected
+Even if the data looks similar, the prediction behaviour shifted.
+This often indicates:
+* hidden bias
+* upstream data issue
+* model degradation
+* prompt/model update issue
+
+4. Label Drift
+The actual ground-truth outcomes change over time.
+Example
+Customer sentiment model:
+* historically 70% positive reviews
+* Now, the market crisis causes mostly negative reviews
+The label distribution changed.
+
+
+Drift Trends in AI Testing Lifecycle
+AI QA/SDET teams monitor:
+* gradual degradation
+* sudden spikes
+* seasonal behavior
+* country/language-specific drift
+* model-version regressions
+Instead of only validating:
+“Does the test pass?”
+AI testing validates:
+“Is model behaviour statistically stable over time?”
+
+
+Key Drift Metrics
+Some common metrics used in enterprise AI testing:
+
+Metric	Purpose
+PSI (Population Stability Index)	Detects feature distribution drift
+KL Divergence	Measures probability distribution change
+JS Divergence	Safer symmetric distribution comparison
+Wasserstein Distance	Distance between distributions
+CER/WER	OCR degradation trend
+Precision/Recall drift	Classification quality degradation
+Embedding similarity drift	LLM semantic behavior changes
+Hallucination rate trend	LLM output stability
+Toxicity drift	Safety degradation
+
+
+This indicates a strong drift trend.
+Possible reasons:
+* new document templates
+* camera quality issues
+* regional language influx
+* compression artifacts
+* lighting conditions
+
+
+What is Precision/Recall & F1 Score?
+
+Precision, Recall, and F1 Score are the most important evaluation metrics for classification-based AI/ML systems.
+They measure how good a model is at making decisions, especially when classes are imbalanced.
+These are heavily used in:
+* fraud detection
+* OCR field validation
+* document classification
+* spam detection
+* medical AI
+* GenAI moderation systems
+
+
+
+
+
+
